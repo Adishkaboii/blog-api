@@ -16,3 +16,9 @@ ALLOWED_HOSTS = config(
         host.strip() for host in value.split(",") if host.strip()
     ],
 )
+
+DB_NAME = config("BLOG_DB_NAME", default="blog")
+DB_USER = config("BLOG_DB_USER", default="postgres")
+DB_PASSWORD = config("BLOG_DB_PASSWORD", default="")
+DB_HOST = config("BLOG_DB_HOST", default="localhost")
+DB_PORT = config("BLOG_DB_PORT", default="5432")
