@@ -1,0 +1,17 @@
+{% extends "admin/change_form.html" %}
+
+{% block submit_buttons_bottom %}
+    <div class="flex flex-wrap items-center justify-end gap-2">
+        {{ block.super }}
+
+        <button
+            type="submit"
+            form="{{ opts.model_name }}_form"
+            name="_save_and_publish"
+            value="1"
+            class="rounded-md bg-green-600 px-3 py-2 text-sm font-medium text-white hover:bg-green-700"
+        >
+            Save &amp; publish
+        </button>
+    </div>
+{% endblock %}

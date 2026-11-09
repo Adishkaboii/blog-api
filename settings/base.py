@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 
 from pathlib import Path
 
+from django.urls import reverse_lazy
+
 from settings import conf
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -29,12 +31,16 @@ ALLOWED_HOSTS = conf.ALLOWED_HOSTS
 # Application definition
 
 INSTALLED_APPS = [
+    "unfold",
+    "unfold.contrib.filters",
+    "unfold.contrib.forms",
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    "django_summernote",
     
     'rest_framework',
 
@@ -57,7 +63,7 @@ ROOT_URLCONF = 'settings.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / "templates"],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -130,3 +136,134 @@ MAILERS = {
 }
 
 AUTH_USER_MODEL = "auths.User"
+
+UNFOLD = {
+    "SITE_TITLE": "Blog Administration",
+    "SITE_HEADER": "Blog Admin",
+    "SITE_SUBHEADER": "Content Management",
+    "SITE_SYMBOL": "article",
+    "THEME": "dark",
+    "ENVIRONMENT": "apps.blog.callbacks.environment_callback",
+
+    "SITE_DROPDOWN": [
+        {
+            "icon": "code",
+            "title": "GitHub Repository",
+            "link": "https://github.com/Adishkaboii/blog-api",
+            "attrs": {"target": "_blank"},
+        },
+        {
+            "icon": "menu_book",
+            "title": "Unfold Documentation",
+            "link": "https://unfoldadmin.com/docs/",
+            "attrs": {"target": "_blank"},
+        },
+    ],
+
+    "COMMAND": {
+        "search_models": True,
+    },
+
+    "COLORS": {
+        "primary": {
+            "50": "#eff6ff",
+            "100": "#dbeafe",
+            "200": "#bfdbfe",
+            "300": "#93c5fd",
+            "400": "#60a5fa",
+            "500": "#3b82f6",
+            "600": "#2563eb",
+            "700": "#1d4ed8",
+            "800": "#1e40af",
+            "900": "#1e3a8a",
+            "950": "#172554",
+        },
+    },
+
+    "DASHBOARD_CALLBACK": "apps.blog.dashboard.dashboard_callback",
+
+    "SIDEBAR": {
+        "show_search": True,
+        "show_all_applications": False,
+        "navigation": [
+            {
+                "title": "Overview",
+                "separator": True,
+                "collapsible": False,
+                "items": [
+                    {
+                        "title": "Dashboard",
+                        "icon": "dashboard",
+                        "link": reverse_lazy("admin:index"),
+                    },
+                ],
+            },
+            {
+                "title": "Content",
+                "separator": True,
+                "collapsible": False,
+                "items": [
+                    {
+                        "title": "Posts",
+                        "icon": "article",
+                        "link": reverse_lazy("admin:blog_post_changelist"),
+                        "badge": "apps.blog.dashboard.draft_posts_badge",
+                    },
+                    {
+                        "title": "Comments",
+                        "icon": "comment",
+                        "link": reverse_lazy("admin:blog_comment_changelist"),
+                    },
+                    {
+                        "title": "Categories",
+                        "icon": "category",
+                        "link": reverse_lazy("admin:blog_category_changelist"),
+                    },
+                    {
+                        "title": "Tags",
+                        "icon": "sell",
+                        "link": reverse_lazy("admin:blog_tag_changelist"),
+                    },
+                ],
+            },
+            {
+                "title": "Users & Access",
+                "separator": True,
+                "collapsible": False,
+                "items": [
+                    {
+                        "title": "Users",
+                        "icon": "group",
+                        "link": reverse_lazy("admin:auths_user_changelist"),
+                        "permission": lambda request: request.user.is_superuser,
+                    },
+                    {
+                        "title": "Groups",
+                        "icon": "admin_panel_settings",
+                        "link": reverse_lazy("admin:auth_group_changelist"),
+                        "permission": lambda request: request.user.is_superuser,
+                    },
+                ],
+            },
+        ],
+    },
+
+    "TABS": [{
+        "models": ["blog.post"],
+        "items": [
+            {
+                "title": "All",
+                "link": reverse_lazy("admin:blog_post_changelist"),
+            },
+            {
+                "title": "Published",
+                "link": "/admin/blog/post/?status__exact=published",
+            },
+            {
+                "title": "Drafts",
+                "link": "/admin/blog/post/?status__exact=draft",
+            },
+        ],
+    },
+],
+}
