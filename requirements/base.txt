@@ -3,3 +3,4 @@ djangorestframework==3.18.1
 djangorestframework-simplejwt==5.5.1
 python-decouple==3.8
 django-unfold==0.110.1
+django-summernote==0.8.20.0
