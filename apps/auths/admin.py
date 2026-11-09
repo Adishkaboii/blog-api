@@ -4,6 +4,7 @@ from django import forms
 from django.contrib import admin
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from django.db.models import Count
+from django.utils.html import format_html
 from unfold.admin import ModelAdmin
 from unfold.contrib.filters.admin import ChoicesDropdownFilter
 from unfold.decorators import action
@@ -67,7 +68,7 @@ class UserAdmin(ModelAdmin):
         "first_name",
         "last_name",
         "posts_count",
-        "is_active",
+        "colored_status",
         "is_staff",
         "is_superuser",
     )
@@ -83,9 +84,7 @@ class UserAdmin(ModelAdmin):
         "first_name",
         "last_name",
     )
-
     ordering = ("email",)
-
     fieldsets = (
         (
             "Personal information",
@@ -95,7 +94,8 @@ class UserAdmin(ModelAdmin):
                     "first_name",
                     "last_name",
                     "password",
-                )
+                ),
+                "classes": ("tab",),
             },
         ),
         (
@@ -115,6 +115,7 @@ class UserAdmin(ModelAdmin):
             "Important dates",
             {
                 "fields": ("last_login",),
+                "classes": ("tab",),
             },
         ),
     )
@@ -145,6 +146,19 @@ class UserAdmin(ModelAdmin):
         queryset = super().get_queryset(request)
         return queryset.annotate(
             posts_count=Count("posts")
+        )
+
+    @admin.display(description="Status", ordering="is_active")
+    def colored_status(self, obj):
+        if obj.is_active:
+            return format_html(
+                '<span style="color: {}; font-weight: 600;">● Active</span>',
+                "#22c55e",
+            )
+
+        return format_html(
+            '<span style="color: {}; font-weight: 600;">● Inactive</span>',
+            "#ef4444",
         )
 
     @action(description="Activate selected users")

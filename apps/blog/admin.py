@@ -21,7 +21,7 @@ from apps.blog.models import Category, Comment, Post, Tag
 
 @admin.register(Category)
 class CategoryAdmin(ModelAdmin):
-    list_display = ("id", "name", "slug", "posts_count",)
+    list_display = ("id", "name", "slug", "expandable_posts",)
     search_fields = ("name",)
     ordering = ("name",)
     prepopulated_fields: ClassVar[dict] = {
@@ -40,12 +40,31 @@ class CategoryAdmin(ModelAdmin):
 
         return queryset.annotate(
             posts_count=Count("posts")
+        ).prefetch_related("posts")
+
+    @admin.display(description="Posts", ordering="posts_count")
+    def expandable_posts(self, obj):
+        posts = list(obj.posts.all())
+
+        if not posts:
+            return "0 posts"
+
+        items = format_html_join(
+            "",
+            "<li class='py-1'>{}</li>",
+            ((post.title,) for post in posts),
         )
-    
+
+        return format_html(
+            '<details><summary class="cursor-pointer">{} posts</summary>'
+            '<ul class="mt-2">{}</ul></details>',
+            len(posts),
+            items,
+        )
 
 @admin.register(Tag)
 class TagAdmin(ModelAdmin):
-    list_display = ("id", "name", "slug", "posts_count",)
+    list_display = ("id", "name", "slug", "expandable_posts",)
     search_fields = ("name",)
     ordering = ("name",)
     prepopulated_fields: ClassVar[dict] = {
@@ -64,6 +83,25 @@ class TagAdmin(ModelAdmin):
 
         return queryset.annotate(
             posts_count=Count("posts")
+        ).prefetch_related("posts")
+    @admin.display(description="Posts", ordering="posts_count")
+    def expandable_posts(self, obj):
+        posts = list(obj.posts.all())
+
+        if not posts:
+            return "0 posts"
+
+        items = format_html_join(
+            "",
+            "<li class='py-1'>{}</li>",
+            ((post.title,) for post in posts),
+        )
+
+        return format_html(
+            '<details><summary class="cursor-pointer">{} posts</summary>'
+            '<ul class="mt-2">{}</ul></details>',
+            len(posts),
+            items,
         )
 
 class CommentInline(TabularInline):
