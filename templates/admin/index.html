@@ -1,0 +1,94 @@
+{% extends "admin/base.html" %}
+{% load i18n %}
+
+{% block content %}
+
+<div class="mb-8">
+    <h1 class="text-2xl font-semibold text-font-important-light dark:text-font-important-dark">
+        Blog Dashboard
+    </h1>
+    <p class="mt-2 text-sm text-font-subtle-light dark:text-font-subtle-dark">
+        Overview of your blog content and activity
+    </p>
+</div>
+
+<div class="grid grid-cols-1 gap-4 mb-8 md:grid-cols-2 xl:grid-cols-4">
+    {% include "admin/stat_card.html" with label="Users" value=users_count %}
+    {% include "admin/stat_card.html" with label="Posts" value=posts_count %}
+    {% include "admin/stat_card.html" with label="Comments" value=comments_count %}
+    {% include "admin/stat_card.html" with label="Categories" value=categories_count %}
+</div>
+
+<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+
+    <div class="border border-base-200 dark:border-base-800 rounded-default p-6">
+        <h2 class="text-lg font-semibold mb-5">
+            Post Status
+        </h2>
+
+        <p class="mb-2">Published: {{ published_count }}</p>
+        <p class="mb-4">Drafts: {{ draft_count }}</p>
+
+        <div class="w-full bg-base-200 dark:bg-base-700 rounded-full h-4 overflow-hidden">
+            <div class="bg-green-500 h-4 rounded-full"
+                 style="width: {{ published_percentage }}%">
+            </div>
+        </div>
+
+        <p class="text-sm mt-3">
+            {{ published_percentage }}% of posts are published
+        </p>
+    </div>
+
+    <div class="border border-base-200 dark:border-base-800 rounded-default p-6">
+        <h2 class="text-lg font-semibold mb-5">
+            Posts by Category
+        </h2>
+
+        {% for category in category_stats %}
+            <div class="mb-4">
+                <div class="flex justify-between mb-1 text-sm">
+                    <span>{{ category.name }}</span>
+                    <span>{{ category.count }}</span>
+                </div>
+
+                <div class="w-full bg-base-200 dark:bg-base-700 rounded-full h-3 overflow-hidden">
+                    <div class="bg-primary-600 h-3 rounded-full"
+                         style="width: {{ category.percentage }}%">
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <p>No categories available.</p>
+        {% endfor %}
+    </div>
+
+    <div class="border border-base-200 dark:border-base-800 rounded-default p-6">
+        <h2 class="text-lg font-semibold mb-5">
+            Top Authors
+        </h2>
+
+        {% for author in top_authors %}
+            <div class="flex justify-between py-3 border-b border-base-200 dark:border-base-800">
+                <span>{{ author.email }}</span>
+                <span>{{ author.posts_count }} posts</span>
+            </div>
+        {% empty %}
+            <p>No authors available.</p>
+        {% endfor %}
+    </div>
+
+    <div class="border border-base-200 dark:border-base-800 rounded-default p-6">
+        <h2 class="text-lg font-semibold mb-5">
+            Blog Summary
+        </h2>
+
+        <p class="mb-3">Total tags: {{ tags_count }}</p>
+        <p class="mb-3">Total categories: {{ categories_count }}</p>
+        <p class="mb-3">Published posts: {{ published_count }}</p>
+        <p class="mb-3">Draft posts: {{ draft_count }}</p>
+    </div>
+
+</div>
+
+{% endblock %}
