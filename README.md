@@ -221,3 +221,62 @@ ruff check .
 python manage.py check
 python manage.py makemigrations --check --dry-run
 ```
+
+
+## Django ORM Queries — Homework 3
+
+This project includes 50 Django ORM queries covering filtering,
+relationships, aggregation, annotations, database updates,
+query optimization, subqueries, and EXISTS expressions.
+
+### Setup
+
+```bash
+python manage.py migrate
+python manage.py seed
+```
+
+### Run all read-only queries
+
+```bash
+python manage.py queries
+```
+
+This runs queries 1–39 and 45–50.
+Write queries 40–44 are skipped by default.
+
+### Run a specific query
+
+```bash
+python manage.py queries --number 29
+```
+
+### Display generated SQL
+
+```bash
+python manage.py queries --number 29 --sql
+```
+
+### Run a write query
+
+```bash
+python manage.py queries --number 41
+```
+
+Warning: Queries 40–44 can modify database records.
+Create a database backup before running them.
+
+### Query optimization
+
+- Read-only queries use one SQL query, except queries 46–47.
+- Query 45 uses select_related().
+- Queries 46–47 use prefetch_related().
+- Queries 48–50 use Subquery, OuterRef, and Exists.
+- Bulk operations avoid calling save() in loops.
+
+### Code locations
+
+- apps/blog/queries.py - ORM query functions.
+- apps/blog/management/commands/queries.py - CLI command.
+- apps/blog/management/commands/seed.py - sample data generator.
+```

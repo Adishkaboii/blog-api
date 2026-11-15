@@ -1,5 +1,6 @@
 import random
 import time
+from datetime import timedelta
 from typing import Any
 
 from django.contrib.auth.hashers import make_password
@@ -9,6 +10,7 @@ from django.core.management.base import (
     CommandParser,
 )
 from django.db import transaction
+from django.utils import timezone
 from django.utils.text import slugify
 from faker import Faker
 
@@ -59,6 +61,12 @@ TAG_NAMES = [
     "FastAPI",
     "Database",
 ]
+
+POST_DATE_RAGE_DAYS = 365
+EDITED_POST_PROBABILITY = 0.30
+MIN_EDITED_DAYS = 1
+MAX_EDITED_DAYS = 30
+SECONDS_PER_DAY = 86400
 
 class Command(BaseCommand):
     help = "Fill the database with fake data."
@@ -229,6 +237,28 @@ class Command(BaseCommand):
 
         created_posts = Post.objects.bulk_create(posts)
 
+        now = timezone.now()
+
+        for post in created_posts:
+            days_ago = random.randint(0, POST_DATE_RAGE_DAYS)
+            seconds_ago = random.randint(0, SECONDS_PER_DAY - 1)
+
+            created_at = now - timedelta(days=days_ago, seconds=seconds_ago)
+
+            post.created_at = created_at
+            post.updated_at = created_at
+
+            if random.random() < EDITED_POST_PROBABILITY:
+                days_after = random.randint(MIN_EDITED_DAYS, MAX_EDITED_DAYS)
+                edited_at = created_at + timedelta(days=days_after)
+
+                if edited_at <= now:
+                    post.updated_at = edited_at
+
+        Post.objects.bulk_update(
+            created_posts, ["created_at", "updated_at"]
+        )
+        
         for post, selected_tags in zip(
             created_posts, post_tags, strict=True
         ):
@@ -236,7 +266,7 @@ class Command(BaseCommand):
 
         return created_posts
 
-    def create_comments(self, count: int) -> list[Comment]:
+    def create_comments(self, count: int, posts: list[Post]) -> list[Comment]:
         if count == 0:
             return []
 
@@ -244,11 +274,10 @@ class Command(BaseCommand):
 
         users = list(User.objects.all())
 
-        published_posts = list(
-            Post.objects.filter(
-                status=Post.Status.PUBLISHED
-            )
-        )
+        published_posts = [
+            post for post in posts 
+            if post.status == Post.Status.PUBLISHED
+        ]
 
         if not users:
             raise CommandError(
@@ -281,7 +310,21 @@ class Command(BaseCommand):
 
             comments.append(comment)
 
-        return Comment.objects.bulk_create(comments)
+        created_comments = Comment.objects.bulk_create(comments)
+        now = timezone.now()
+
+        for comment in created_comments:
+            start = comment.post.created_at
+            available_seconds = max(0, int((now - start).total_seconds()))
+
+            comment.created_at = start + timedelta(seconds=random.randint(0, available_seconds))
+        
+        Comment.objects.bulk_update(
+            created_comments, ["created_at"]
+        )
+
+        return created_comments
+
 
     def clear_data(self) -> None:
         Comment.objects.all().delete()
@@ -341,7 +384,15 @@ class Command(BaseCommand):
             )
 
             created_posts = self.create_posts(posts_count)
-            created_comments = self.create_comments(comments_count)
+
+            if created_posts:
+                available_posts = created_posts
+            else:
+                available_posts = list(Post.objects.all())
+
+            created_comments = self.create_comments(
+                comments_count,
+                available_posts,)
 
         self.stdout.write(
             self.style.SUCCESS(
